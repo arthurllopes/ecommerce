@@ -1,12 +1,15 @@
 import { GetServerSideProps } from 'next';
 import Image from 'next/image';
 import React from 'react';
+import { useDispatch } from 'react-redux';
 import { Header } from '../../components/Header';
 import ProductCard, { Product } from '../../fragments/ProductCard';
+import { addToCart } from '../../store/Cart';
 
 type Props = {product: Product}
 const ProductPage = ({product}: Props) => {
     const [relatedProducts, setRelatedProducts] = React.useState<Product[] | null>()
+    const dispatch = useDispatch()
     React.useEffect(() => {
         const getRelated = async () => {
             const sameCategory = await fetch(`https://fakestoreapi.com/products/category/${product.category}?limit=5`)
@@ -39,7 +42,11 @@ const ProductPage = ({product}: Props) => {
                                         $ {product.price}
                                     </div>
                                 </div>
-
+                        </div>
+                        <div className='grow mt-2' >
+                            <button className=' bg-yellow mx-auto py-2 px-8 whitespace-nowrap rounded hover:opacity-90 border font-semibold' onClick={() => dispatch(addToCart(product))} >
+                                Add to Cart
+                            </button>
                         </div>
                 </div>
             </div>

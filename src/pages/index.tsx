@@ -6,6 +6,9 @@ import { Header } from '../components/Header'
 import FeaturingProductList from '../components/FeaturingProductsList'
 import { useSession, signIn, signOut } from "next-auth/react"
 import ProductCard from '../fragments/ProductCard'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from '../store/configureStore'
+import { changeProducts, setAllProducts, setProductsShown } from '../store/Items'
 
 type featuringProduct = {
   id: number,
@@ -26,22 +29,22 @@ export type Props = {
   
 
 const Home = ({featuringProducts, categories}: Props) => {
-  const [products, setProducts] = React.useState<featuringProduct[] | null>()
   const [category, setCategory] = React.useState<string>('all')
+  const dispatch = useDispatch()
+  const { productsShown } = useSelector((state: RootState) => state.Items)
+  React.useEffect(() => {
+    dispatch(changeProducts(category))
+  }, [category, dispatch])
+
   React.useEffect(() => {
     const getCategory = async () => {
-      if(category === 'all') {
-        const categoryProducts = await fetch(`https://fakestoreapi.com/products`)
-        .then(response => response.json())
-        setProducts(categoryProducts)
-      } else {
-        const categoryProducts = await fetch(`https://fakestoreapi.com/products/category/${category}`)
-        .then(response => response.json())
-        setProducts(categoryProducts)
-      }
-  }
+      const categoryProducts = await fetch(`https://fakestoreapi.com/products`)
+      .then(response => response.json())
+      dispatch(setAllProducts(categoryProducts))
+      dispatch(setProductsShown(categoryProducts))
+    }
     getCategory()
-  }, [category])
+  }, [dispatch])
   return (
     <div className="bg-gray-lightest">
       <Head>
@@ -65,8 +68,8 @@ const Home = ({featuringProducts, categories}: Props) => {
         ))}
       </nav>
       <div className='z-50 mx-auto  grid grid-flow-row-dense sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
-            {products?.map(product =>(
-                <ProductCard key={product.id} product={product}/>
+            {productsShown?.map(item =>(
+                <ProductCard key={item.id} product={item}/>
             ))}
       </div>
     </div>
