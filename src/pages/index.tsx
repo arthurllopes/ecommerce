@@ -1,24 +1,47 @@
 import type { GetServerSideProps, NextPage } from 'next'
+import React from 'react'
 import Head from 'next/head'
 import Banner from '../components/Banner'
 import { Header } from '../components/Header'
 import FeaturingProductList from '../components/FeaturingProductsList'
+import { useSession, signIn, signOut } from "next-auth/react"
+import ProductCard from '../fragments/ProductCard'
 
-export type featuringProps= {
-  featuringProducts: {
-    id: number,
-    title: string,
-    price: number,
-    description: string,
-    category: string,
-    image: string,
-    rating: {
-      rate: number,
-      count: number
-    }
-  }[]
+type featuringProduct = {
+  id: number,
+  title: string,
+  price: number,
+  description: string,
+  category: string,
+  image: string,
+  rating: {
+    rate: number,
+    count: number
+  }
 }
-const Home: NextPage = ({featuringProducts}: featuringProps) => {
+export type Props = {
+  featuringProducts: featuringProduct[],
+  categories: string[],
+}
+  
+
+const Home = ({featuringProducts, categories}: Props) => {
+  const [products, setProducts] = React.useState<featuringProduct[] | null>()
+  const [category, setCategory] = React.useState<string>('all')
+  React.useEffect(() => {
+    const getCategory = async () => {
+      if(category === 'all') {
+        const categoryProducts = await fetch(`https://fakestoreapi.com/products`)
+        .then(response => response.json())
+        setProducts(categoryProducts)
+      } else {
+        const categoryProducts = await fetch(`https://fakestoreapi.com/products/category/${category}`)
+        .then(response => response.json())
+        setProducts(categoryProducts)
+      }
+  }
+    getCategory()
+  }, [category])
   return (
     <div className="bg-gray-lightest">
       <Head>
@@ -31,6 +54,21 @@ const Home: NextPage = ({featuringProducts}: featuringProps) => {
         <Banner />
         <FeaturingProductList featuringProducts={featuringProducts} />
       </main>
+      <nav className='flex items-center justify-center space-x-4 mx-auto'>
+        <div className={`${category === 'all' ? 'bg-blue-light' : 'bg-white'} rounded-2xl p-4 cursor-pointer`} onClick={() => setCategory('all')}>
+          All Products
+        </div>
+        {categories.map(item => (
+          <div key={item} className={`${category === item ? 'bg-blue-light' : 'bg-white'} rounded-2xl p-4 cursor-pointer`} onClick={() => setCategory(item)}>
+            {item}
+          </div>
+        ))}
+      </nav>
+      <div className='z-50 mx-auto  grid grid-flow-row-dense sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
+            {products?.map(product =>(
+                <ProductCard key={product.id} product={product}/>
+            ))}
+      </div>
     </div>
   )
 }
@@ -40,10 +78,13 @@ export default Home
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const featuringProducts = await fetch('https://fakestoreapi.com/products?limit=4')
   .then(response => response.json())
-  console.log(featuringProducts)
+
+  const categories = await fetch(`https://fakestoreapi.com/products/categories`)
+    .then(response => response.json())
   return {
     props: {
-      featuringProducts
+      featuringProducts,
+      categories
     }
   }
 }

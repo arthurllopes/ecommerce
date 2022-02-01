@@ -1,26 +1,35 @@
 import React from 'react';
 import Image from 'next/image';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../../store/Cart';
+import { useRouter } from 'next/router'
 
-type Props = {
-    product: {
-        id: number;
-        title: string;
-        price: number;
-        description: string;
-        category: string;
-        image: string;
-        rating: {
-            rate: number;
-            count: number;
-        }
+export type Product = {
+    id: number;
+    title: string;
+    price: number;
+    description: string;
+    category: string;
+    image: string;
+    rating: {
+        rate: number;
+        count: number;
     }
 }
+type Props = {
+    product: Product;
+}
 const ProductCard = ({product}: Props) => {
+    const router = useRouter()
+    const navigateTo = () => {
+        router.push(`/${product.id}`)
+    }
+    const dispatch = useDispatch();
   return (
-        <div className='bg-white z-50 px-8 py-8 flex flex-col m-5 rounded h-80'>
-            <Image src={product.image} alt={product.title} height={180} width={120} objectFit='contain'/>
-            <h4 className='p-2 italic'>{product.title}</h4>
-            <div className="flex items-center justify-between px-3 mb-2">
+        <div className='bg-white z-40 px-8 py-8 flex flex-col m-5 rounded h-80 cursor-pointer'>
+            <Image src={product.image} alt={product.title} height={180} width={120} objectFit='contain' />
+            <h4 className='p-2 italic' onClick={navigateTo}>{product.title}</h4>
+            <div className="flex items-center justify-between px-3 mb-2" onClick={navigateTo}>
                 <div className="flex items-center">
                     {product.rating.rate}
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="yellow">
@@ -31,8 +40,8 @@ const ProductCard = ({product}: Props) => {
                     ${product.price}
                 </div>
             </div>
-            <div className='mx-auto grow mt-2'>
-                <button className='bg-yellow mx-auto py-2 px-8 whitespace-nowrap rounded hover:opacity-90 border font-semibold '>
+            <div className='z-50 mx-auto grow mt-2' >
+                <button className=' bg-yellow mx-auto py-2 px-8 whitespace-nowrap rounded hover:opacity-90 border font-semibold' onClick={() => dispatch(addToCart(product))} >
                     Add to Cart
                 </button>
             </div>
